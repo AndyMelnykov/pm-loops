@@ -12,6 +12,7 @@ If `LOOPS.md` does not exist at the repo root, this user has never run a loop. E
 - `.claude/skills/<loop-name>/SKILL.md` + `STATE.md` — instantiated, runnable versions of each loop (fixture-backed; swap fixture paths for your real sources).
 - `data/<loop-name>/` — realistic fixture inputs each instantiated skill runs against.
 - `runs/<loop-name>/` — created on first run: drafts, approved outputs, and flags land here.
+- `CONNECTING-DATA-SOURCES.md` — how to swap a loop's fixture paths for a real connected tool (Slack, Notion, Linear, CRM, analytics), with exact `claude mcp add` commands per tool and a worked before/after example.
 
 ## Rules for working in this repo
 

@@ -8,6 +8,8 @@ From the Product Growth deep dive: Loops for PMs. Get the guide at news.aakashg.
 
 Open Claude Code in this folder and say **"get me started."** Claude scans what you have connected (Slack, Notion, Linear, analytics, CRM…), picks the one loop that works with it, and offers to run it so you see your first output in minutes. Nothing connected? Every loop ships with realistic demo data in `data/` — you still get an output this session. The rest of this README is for after you've seen one run.
 
+Connecting a source `start-here` didn't ask about, or want the exact `claude mcp add` commands up front? See [`CONNECTING-DATA-SOURCES.md`](CONNECTING-DATA-SOURCES.md).
+
 ---
 
 ## Problem
