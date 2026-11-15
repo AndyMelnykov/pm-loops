@@ -1,0 +1,61 @@
+{
+  "loop": "metric-anomaly",
+  "eval_set_version": "2026-11-15",
+  "owner": "PM loop pack maintainers",
+  "notes": "Answer key for the metric-anomaly loop. Each case freezes STATE.md and runs the loop exactly as shipped. Numbers in the answer keys were recomputed from data/metric-anomaly/*.csv; recompute them if you change a fixture.",
+  "run": {
+    "prompt": "/metric-anomaly\n\nRun this loop end to end, non-interactively. Run MAKER.md as one agent, then CHECKER.md as a separate fresh agent that never sees the maker's reasoning. If the checker fails the draft, hand its exact flags back to the maker once, then run a fresh checker on the revised draft. Do not ask questions; finish the run.",
+    "approved_globs": ["runs/metric-anomaly/*.md"],
+    "draft_globs": ["runs/metric-anomaly/drafts/*.md"],
+    "flag_globs": ["runs/metric-anomaly/flags/*.md"],
+    "state_paths": [".claude/skills/metric-anomaly/STATE.md"]
+  },
+  "cases": [
+    {
+      "id": "MA-001",
+      "title": "Day 2 of an open flag, with a tempting under-threshold decoy",
+      "scenario": "Data day 2026-07-15. api_error_rate has an open flag from data day 07-14 (day 1). Deploy v2.31.0 (payments-api) shipped 07-13. checkout_conversion is sliding (-8.03%) and fits the deploy story, but is under its 10% threshold. A webinar campaign (07-10) and a pricing change (06-24) sit in changes.md as decoy causes.",
+      "setup": {"state": "cases/MA-001/STATE.md"},
+      "reference": "Data day evaluated: 2026-07-15. Thresholds: any metric 10% vs its 7-day rolling average; activation_rate 5%. Baseline window 2026-07-08..2026-07-14, minus days covered by an open flag for that metric.\n- api_error_rate: 1.31%. Open flag excludes 2026-07-14, so the clean baseline is 07-08..07-13 = 0.465% and the delta is +181.7%. The contaminated 7-day average (0.661%, +98.1%) may only appear as a labeled reference aside. This is a CONTINUATION: day 2 of the flag opened on data day 2026-07-14, status OPEN, day 2, not yet sustained (sustained only at day 3).\n- checkout_conversion: 2.93% vs 3.186% = -8.03%. Under the 10% threshold. NOT a flag. May appear only on a Watch (not flagged) list.\n- activation_rate: 33.7% vs 34.186% = -1.42%. Not a flag.\n- p95_latency: 449 vs 426.3 = +5.33%. Not a flag.\n- signups +2.44%, dau +2.47%. Not flags.\n- Exactly one flagged metric today: api_error_rate (continuation). Zero new flags.\n- Candidate cause: deploy v2.31.0 (payments-api, 2026-07-13 17:40 PT, owner @dkoval). The 2026-07-10 webinar campaign and the 2026-06-24 Starter pricing change are not the candidate cause.\n- State advance on pass: api_error_rate day 2, not yet sustained; baseline exclusions now 2026-07-14 and 2026-07-15.",
+      "criteria": [
+        {"id": "gate-passed", "type": "gate_passed",
+         "why": "The checker must pass the draft and move it to runs/metric-anomaly/. A run that never clears the gate never reaches a stakeholder."},
+        {"id": "state-advanced", "type": "state_advanced", "values": ["day 2"],
+         "why": "Known failure 2026-07-16: pass printed without the STATE.md append."},
+        {"id": "no-em-dash", "type": "must_not_contain", "values": ["—"],
+         "why": "Output rule: one em dash anywhere is an automatic fail."},
+        {"id": "section-order", "type": "heading_order", "values": ["Plain-language summary", "Bottom Line", "State carried in"],
+         "why": "Output format: summary first, Bottom Line second, then state."},
+        {"id": "bottom-line-3-to-5", "type": "section_bullets", "section": "Bottom Line", "min": 3, "max": 5,
+         "why": "Known failure 2026-07-17: no synthesis up top."},
+        {"id": "clean-baseline-delta", "type": "regex", "pattern": "181\\.7\\d*\\s*%|\\+?182\\s*%",
+         "why": "Known failure 2026-05-19 and 2026-07-16: flagged days must be excluded from the baseline. +181.7% only comes out of the clean 0.465% baseline."},
+        {"id": "continuation-day-2", "type": "must_contain", "values": ["day 2", "not yet sustained"],
+         "why": "Known failure 2026-07-16: open flag re-announced with no day count."},
+        {"id": "no-fresh-flag-heading", "type": "not_regex", "pattern": "^#+\\s*Flag\\s*:\\s*api_error_rate",
+         "why": "A fresh 'Flag:' heading for an already-open flag fails."},
+        {"id": "no-stateless-claim", "type": "not_regex", "pattern": "\\bno state file\\b|\\bloop is stateless\\b|\\bstateless:",
+         "why": "Known failure 2026-07-16: run declared the loop stateless."},
+        {"id": "cause-names-deploy", "type": "must_contain", "values": ["v2.31.0"],
+         "why": "Hypothesis must name the specific candidate change."},
+        {"id": "owner-named", "type": "must_contain", "values": ["dkoval"],
+         "why": "First step must name the owner to page."},
+        {"id": "clean-baseline-leads", "type": "judge",
+         "question": "For api_error_rate, is the baseline used in the table, the Signal line and any headline the clean one (about 0.465%, delta about +181.7%), with any contaminated figure (about 0.661%, about +98%) shown only as a clearly labeled reference aside, or not at all?",
+         "why": "Known failure 2026-07-16: contaminated average reported as the headline."},
+        {"id": "not-called-sustained", "type": "judge",
+         "question": "Does the report treat api_error_rate as day 2 of an open flag and avoid calling it sustained or a sustained shift today?",
+         "why": "Sustained only at 3 consecutive days."},
+        {"id": "decoy-checkout-not-flagged", "type": "judge",
+         "question": "checkout_conversion moved about -8.0%, under its 10% threshold. Is it kept out of the flags (it may appear only on a Watch / not-flagged list), so that api_error_rate is the only flagged metric?",
+         "why": "Decoy precision: a plausible story must not promote an under-threshold metric."},
+        {"id": "decoy-causes-rejected", "type": "judge",
+         "question": "Does the report name deploy v2.31.0 as the candidate cause, and NOT name the 2026-07-10 webinar campaign or the 2026-06-24 pricing change as the candidate cause?",
+         "why": "Candidate cause must follow the evidence, not just the newest log entry."},
+        {"id": "first-step-actionable", "type": "judge",
+         "question": "Is there a First step that can be done within the next hour, names a specific breakdown or query, names the person to page, and names a fallback such as a rollback?",
+         "why": "Hypothesis format: time-bound, specific first step with owner and fallback."}
+      ]
+    }
+  ]
+}

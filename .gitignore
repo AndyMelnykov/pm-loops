@@ -2,3 +2,6 @@ runs/
 .claude/scheduled_tasks.lock
 .DS_Store
 Thumbs.db
+
+# Eval run outputs (history.csv in each evals/<loop>/ is the committed record)
+evals/results/
