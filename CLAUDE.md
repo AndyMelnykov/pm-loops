@@ -12,13 +12,15 @@ If `LOOPS.md` does not exist at the repo root, this user has never run a loop. E
 - `.claude/skills/<loop-name>/SKILL.md` + `STATE.md` — instantiated, runnable versions of each loop (fixture-backed; swap fixture paths for your real sources).
 - `data/<loop-name>/` — realistic fixture inputs each instantiated skill runs against.
 - `runs/<loop-name>/` — created on first run: drafts, approved outputs, and flags land here.
+- `evals/` — fixed eval cases with answer keys per loop, plus `run_evals.py` to run, grade, and compare skill versions. See `evals/README.md`. Never copy `evals/` into a loop's inputs: makers and checkers must not see answer keys.
 - `CONNECTING-DATA-SOURCES.md` — how to swap a loop's fixture paths for a real connected tool (Slack, Notion, Linear, CRM, analytics), with exact `claude mcp add` commands per tool and a worked before/after example.
 
 ## Rules for working in this repo
 
 - Every loop is maker → checker → gate → state. The maker and checker are **separate agent invocations**. Never merge them into one prompt.
 - Loops write drafts to files; a human approves before anything reaches a stakeholder. Never wire a loop's output directly to Slack/Notion/email without the gate passing AND human review for irreversible actions.
-- When a loop makes a mistake, write it into that skill's "Known failure modes" section — never just fix it in chat.
+- When a loop makes a mistake, write it into that skill's "Known failure modes" section — never just fix it in chat. If the loop has an `evals/<loop>/` folder, also add a criterion that catches it.
+- Before and after changing a skill that has evals, run `python evals/run_evals.py run <loop> --label <name>` and `compare`. Don't ship a change that comes back REGRESSED.
 - The maker reads STATE.md at start. The checker appends to STATE.md after a pass. Keep that contract when editing prompts.
 - Loop definition files (the 12 numbered .md files) are the source of truth; regenerate `.claude/skills/` instantiations from them, not the other way around.
 - When the user wants a NEW loop that isn't one of the 12, use the `loop-builder` skill — readiness test first, then all six pieces, then a test run with a separate checker. Never hand over an untested loop.

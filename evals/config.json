@@ -1,0 +1,20 @@
+{
+  "_comment": "CLI args for eval runs. --setting-sources project keeps your personal plugins, hooks and user settings out of the run so results are comparable across machines and days. Loop runs need to write and move files inside the throwaway workspace; widen allowedTools if a run is blocked on a permission.",
+  "loop_args": [
+    "--setting-sources", "project",
+    "--strict-mcp-config",
+    "--no-session-persistence",
+    "--permission-mode", "acceptEdits",
+    "--allowedTools",
+    "Read", "Write", "Edit", "Glob", "Grep", "Agent", "Task", "Skill", "TodoWrite",
+    "Bash(mkdir:*)", "Bash(mv:*)", "Bash(cp:*)", "Bash(ls:*)", "Bash(cat:*)",
+    "Bash(python:*)", "Bash(python3:*)",
+    "PowerShell(Move-Item:*)", "PowerShell(Copy-Item:*)", "PowerShell(New-Item:*)", "PowerShell(Get-ChildItem:*)"
+  ],
+  "judge_args": [
+    "--setting-sources", "project",
+    "--strict-mcp-config",
+    "--no-session-persistence"
+  ],
+  "judge_model": null
+}
