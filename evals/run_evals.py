@@ -43,10 +43,17 @@ HISTORY_FIELDS = [
 ]
 
 DETERMINISTIC = {
-    "must_contain", "must_not_contain", "regex", "not_regex",
+    "must_contain", "must_not_contain", "regex", "not_regex", "regex_count",
     "heading_order", "section_bullets", "gate_passed", "state_advanced",
-    "file_unchanged",
+    "file_unchanged", "file_count", "cited_ids_exist", "quotes_in_source",
 }
+
+RUN_DATE_NOTE = (
+    "\n\nEval clock: the run date for this run is {date}. Treat {date} as "
+    "today's actual date from the environment for every date in this run "
+    "(report header, file names, staleness math); the machine clock is not "
+    "the run date. Pass this run date to the maker and to the checker."
+)
 KNOWN_TYPES = DETERMINISTIC | {"judge"}
 
 
@@ -163,6 +170,29 @@ def make_workspace(loop, es, case):
     return ws
 
 
+def run_prompt(es, case):
+    prompt = es["run"]["prompt"]
+    date = case.get("setup", {}).get("run_date")
+    return prompt + RUN_DATE_NOTE.format(date=date) if date else prompt
+
+
+def source_path(loop, case, rel):
+    """Resolve a repo-relative source file, preferring the case's fixture
+    overlay (so criteria check against what the run actually saw)."""
+    fx = case.get("setup", {}).get("fixtures")
+    prefix = f"data/{loop}/"
+    if fx and rel.startswith(prefix):
+        p = EVALS / loop / fx / rel[len(prefix):]
+        if p.exists():
+            return p
+    return REPO / rel
+
+
+def norm_quote(s):
+    s = s.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
 def snapshot_text(loop, case):
     st = case.get("setup", {}).get("state")
     if st:
@@ -258,10 +288,16 @@ def grade_deterministic(c, ctx):
             return False, f"{c['path']} missing after run"
         same = txt.replace("\r\n", "\n") == ctx["state_before"].replace("\r\n", "\n")
         return same, f"{c['path']} " + ("unchanged" if same else "was edited")
+    if t == "file_count":
+        if ctx["tdir"] is None:
+            return True, "not checked in grade mode"
+        n = len(matches(ctx["tdir"], [c["glob"]]))
+        ok = c.get("min", 0) <= n <= c.get("max", 10**6)
+        return ok, f"{n} file(s) match {c['glob']} (want {c.get('min', 0)}-{c.get('max', 'any')})"
 
     text = ctx["state_text"] if c.get("in") == "state" else ctx["output"]
     if not text:
-        return False, "no output to grade"
+        return False, ("no changed state file to grade" if c.get("in") == "state" else "no output to grade")
     flags = 0 if c.get("case_sensitive") else re.I
     if t in ("must_contain", "must_not_contain"):
         hay = text if c.get("case_sensitive") else text.lower()
@@ -273,8 +309,30 @@ def grade_deterministic(c, ctx):
     if t in ("regex", "not_regex"):
         m = re.search(c["pattern"], text, flags | re.M)
         if t == "regex":
-            return bool(m), (f"matched {m.group(0)!r}" if m else f"no match for /{c['pattern']}/")
-        return not m, ("no match" if not m else f"matched {m.group(0)!r}")
+            return bool(m), (f"matched {m.group(0)[:80]!r}" if m else f"no match for /{c['pattern']}/")
+        return not m, ("no match" if not m else f"matched {m.group(0)[:80]!r}")
+    if t == "regex_count":
+        n = len(re.findall(c["pattern"], text, flags | re.M))
+        ok = c.get("min", 0) <= n <= c.get("max", 10**6)
+        return ok, f"{n} match(es) (want {c.get('min', 0)}-{c.get('max', 'any')})"
+    if t in ("cited_ids_exist", "quotes_in_source"):
+        src = "\n".join(read(source_path(ctx["loop"], ctx["case"], s)) for s in c["sources"])
+        if t == "cited_ids_exist":
+            ids = sorted(set(re.findall(c["pattern"], text)))
+            if not ids:
+                return False, "no ids cited"
+            bad = [i for i in ids if not re.search(rf"^{re.escape(i)},", src, re.M)]
+            return not bad, (f"{len(ids)} cited ids all exist" if not bad else f"ids not in sources: {bad}")
+        src_n = norm_quote(src.replace('""', '"'))
+        quotes = []
+        for line in text.splitlines():
+            if re.search(c["id_pattern"], line):
+                for q in re.findall(r"[\"“]([^\"”]{15,})[\"”]", line):
+                    quotes += [s for s in re.split(r"\.\.\.|…", q) if len(s.strip()) >= 10]
+        if len(quotes) < c.get("min", 1):
+            return False, f"{len(quotes)} quote(s) found next to ticket ids (want >= {c.get('min', 1)})"
+        bad = [q.strip() for q in quotes if norm_quote(q).strip(" .,") not in src_n]
+        return not bad, (f"{len(quotes)} quotes all verbatim" if not bad else f"not verbatim in source: {bad[:3]}")
     if t == "heading_order":
         pos = [(v, heading_pos(text, v)) for v in c["values"]]
         miss = [v for v, p in pos if p < 0]
@@ -361,7 +419,8 @@ def build_ctx(loop, es, case, tdir, output_file=None, state_file=None):
     before = snapshot_text(loop, case)
     changed = [t for t in state_after.values() if t.replace("\r\n", "\n") != before.replace("\r\n", "\n")]
     rel = lambda ps: [str(p.relative_to(tdir)) if tdir in p.parents else str(p) for p in ps]
-    return {"output": output, "graded_files": rel(graded), "gate_files": rel(gate),
+    return {"loop": loop, "case": case, "tdir": None if output_file else tdir,
+            "output": output, "graded_files": rel(graded), "gate_files": rel(gate),
             "flag_files": rel(flagf), "state_after": state_after,
             "state_before": before, "state_text": "\n\n".join(changed),
             "judge_cost": 0}
@@ -473,7 +532,7 @@ def cmd_run(a):
             ws = make_workspace(a.loop, es, case)
             print(f"\n- {case['id']} trial {i}: running loop in {ws} ...", flush=True)
             try:
-                meta = run_claude(es["run"]["prompt"], ws, cfg.get("loop_args", []),
+                meta = run_claude(run_prompt(es, case), ws, cfg.get("loop_args", []),
                                   a.timeout, a.model)
                 collect(a.loop, es, ws, tdir)
             finally:

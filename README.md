@@ -186,7 +186,7 @@ There is no vector store, no long-running server, and no model-held session stat
 
 Every shipped loop was exercised with blind maker/checker runs and adversarial grading before shipping, and each skill folder's **Known failure modes** section is the resulting record — for example, `competitive-brief`'s log has 18 dated entries (2026-05-18 through 2026-07-16) covering real defects: stale re-reports, invented meeting venues, a checker that certified "all exact" over a wrong item-to-release attribution, exclusion text leaking into the filed body.
 
-That log is real and growing, but it is a defect history, not a benchmark. The start of a reproducible suite lives in [`evals/`](evals/README.md): fixed cases with frozen state and hand-computed answer keys, a grader, and a `compare` command that tells you whether a skill change made a loop better or worse. It covers `metric-anomaly` and `ai-quality-watchdog` so far; the other 10 loops have no cases yet.
+That log is real and growing, but it is a defect history, not a benchmark. The start of a reproducible suite lives in [`evals/`](evals/README.md): fixed cases with frozen state and hand-computed answer keys, a grader, and a `compare` command that tells you whether a skill change made a loop better or worse. It covers `metric-anomaly`, `ai-quality-watchdog` and `onboarding-friction` so far; the other 9 loops have no cases yet.
 
 ## Observability
 
@@ -224,7 +224,7 @@ It dies when the session closes and recurring tasks expire after 7 days. Right f
 ## Limitations
 
 - No recorded demo (GIF/video/screenshots) yet — the Demo section above is a textual walkthrough against real fixtures, not a captured run.
-- Partial evaluation suite: `evals/` has rerunnable cases for 2 of 12 loops; quality claims for the rest rest on the Known-failure-modes logs and pre-ship adversarial testing.
+- Partial evaluation suite: `evals/` has rerunnable cases for 3 of 12 loops; quality claims for the rest rest on the Known-failure-modes logs and pre-ship adversarial testing.
 - Observability is document-based (STATE.md, checker footers, flags/), not structured traces — there's no cross-run query surface for token cost, latency, or tool-call history.
 - Gates are hand-authored per loop and rely on a 6-week manual audit cadence; there's no automated detection of a gate that's gone stale.
 - Retrieval assumes a small, named source set per loop; it doesn't generalize to large or unstructured corpora without embeddings.
