@@ -1,0 +1,461 @@
+{
+  "loop": "onboarding-friction",
+  "eval_set_version": "2026-11-16",
+  "owner": "PM loop pack maintainers",
+  "notes": "Answer keys recomputed with code from the raw CSVs (data rows only, full precision, rounded once). Run date is pinned per case via setup.run_date because the skill dates staleness from today's date; without a pin every source is stale after mid-August 2026 and the expected answer drifts. OF-001 uses the shipped fixtures, whose headline numbers also appear verbatim as worked examples in SKILL.md and MAKER.md, so OF-001 cannot tell recomputation from copying. OF-002 overlays the same file names with different numbers to close that gap.",
+  "run": {
+    "prompt": "/onboarding-friction\n\nRun this loop end to end, non-interactively. Run MAKER.md as one agent, then CHECKER.md as a separate fresh agent that never sees the maker's reasoning. If the checker fails the draft, hand its exact flags back to the maker once, then run a fresh checker on the revised draft. Do not ask questions; finish the run.",
+    "approved_globs": [
+      "runs/onboarding-friction/*.md"
+    ],
+    "gate_globs": [
+      "runs/onboarding-friction/2026-07-14.md"
+    ],
+    "draft_globs": [
+      "runs/onboarding-friction/drafts/*.md"
+    ],
+    "flag_globs": [
+      "runs/onboarding-friction/flags/*.md"
+    ],
+    "state_paths": [
+      ".claude/skills/onboarding-friction/STATE.md"
+    ]
+  },
+  "cases": [
+    {
+      "id": "OF-001",
+      "title": "Watch item crosses threshold, ticket spike, structural step stays quiet",
+      "scenario": "Shipped fixtures, data week 2026-07-06, run date 2026-07-14. STATE.md holds one prior run (2026-07-06) with Connect data source as a watch item at +1.0. Connect data source now crosses threshold; ticket volume more than doubles; Invite team is high but structural. session-notes.md is the only stale source and is the only place the late-June connect-wizard change is mentioned.",
+      "setup": {
+        "state": "cases/OF-001/STATE.md",
+        "run_date": "2026-07-14"
+      },
+      "reference": "Run date 2026-07-14. Data week 2026-07-06. Expected header: 'week of 2026-07-06 (run 2026-07-14)'.\nFunnel 2026-07-06 drop-off vs 8-week baseline (full precision, rounded once): Create account 745/5093 = 14.63% vs 15.1 (-0.47); Verify email 449/4348 = 10.33% vs 10.6 (-0.27); Create workspace 327/3899 = 8.39% vs 8.4 (-0.01); Connect data source 686/3572 = 19.2049% -> 19.20% vs 14.5 (+4.70, FLAG); Invite team 1234/2886 = 42.76% vs 41.5 (+1.26, not flagged, structural); Build first dashboard 258/1652 = 15.62% vs 15.8 (-0.18). Double-rounded wrong values: 19.21 and +4.71.\nPrior week (2026-06-29) for context: Connect data source 525/3387 = 15.50% (+1.00), which STATE.md recorded as a watch item.\nTickets 2026-07-06: 27 data rows (header and 2 comment lines excluded) vs 4-week average 12 = 2.25x, FLAG (threshold 2x). Tag counts: connect-data 18; connect-data AND confusing-setup 14 (51.85% of 27); email 3; invite-team 3; workspace 1; dashboard 1. Prior week: 13 tickets (1.08x).\nExpected flags, exactly two: (1) Connect data source, framed as escalated from the STATE.md watch item, 1st consecutive flagged week, not sustained, not new. (2) Onboarding ticket volume, a new flag. No other step is flagged. Invite team is not flagged and its structural baseline is attributed to STATE.md's pattern log, not to session-notes.md.\nSource health on 2026-07-14 (dated headers): funnel-2026-07-06.csv generated 2026-07-13 (1 day); baseline-8week.csv generated 2026-07-13 (1 day); support-onboarding-2026-07-06.csv exported 2026-07-13 (1 day); funnel-2026-06-29.csv generated 2026-07-06 (8 days); support-onboarding-2026-06-29.csv exported 2026-07-06 (8 days); session-notes.md last updated 2026-06-03 = 41 days, STALE. A report that dates sources by their data-week start instead of the generated line is acceptable as long as it is explicit and only session-notes.md is stale. Each source-health line must show '2026-07-14 minus <date> = N days old'.\nsession-notes.md is the ONLY source for: the late-June connect-wizard changes, and 'email verification issues are environmental'. Any such fact must be disclosed as stale historical context naming session-notes.md; attributing it to STATE.md or any fresh file is a fabricated citation.\nSTATE.md sections in the frozen snapshot: 'Last run' holds the 2026-07-06 bullet (Connect data source 15.5% vs 14.5%, +1.0, watch item; ticket volume 13 vs 12). 'Pattern log' holds the Invite team structural baseline (41.5%) and the Connect data source watch-item bullet (+1.0). Neither section mentions a connect-wizard ship date.\nNo prose summary anywhere in the sources contradicts the raw ticket counts, so no data-owner discrepancy note is required; any note claiming a document states '15/13' is fabricated (that figure exists only as an example inside the skill's own instructions).\nTwo data points only (+1.00 then +4.70): trend-shape words (accelerating, compounding, trend) are not allowed for the connect step.\nEvery flag needs a Likely cause line citing current ticket_ids and a Next action naming an acting owner (who does it this hour) plus the receiving team when routing.",
+      "criteria": [
+        {
+          "id": "gate-passed",
+          "type": "gate_passed",
+          "why": "Checker must pass and promote the draft to runs/onboarding-friction/[RUN-DATE].md, named for the run date."
+        },
+        {
+          "id": "single-report-at-root",
+          "type": "file_count",
+          "glob": "runs/onboarding-friction/*.md",
+          "min": 1,
+          "max": 1,
+          "why": "Known failure 2026-07-16: two byte-identical report copies at the round root."
+        },
+        {
+          "id": "single-flags-file",
+          "type": "file_count",
+          "glob": "runs/onboarding-friction/flags/*.md",
+          "min": 0,
+          "max": 1,
+          "why": "Known failure 2026-07-16: checker wrote its fail record twice."
+        },
+        {
+          "id": "state-advanced",
+          "type": "state_advanced",
+          "values": [
+            "2026-07-14"
+          ],
+          "why": "Known failure 2026-07-16: passing run never appended to STATE.md."
+        },
+        {
+          "id": "single-last-run-header",
+          "type": "regex_count",
+          "in": "state",
+          "pattern": "^## Last run",
+          "min": 1,
+          "max": 1,
+          "why": "Known failure 2026-07-16: append created a second '## Last run' header."
+        },
+        {
+          "id": "append-under-last-run",
+          "type": "regex",
+          "in": "state",
+          "pattern": "(?s)^## Last run\\s*$.*?^- 2026-07-14.*?^## Pattern log",
+          "why": "The new dated bullet goes under the existing Last run section."
+        },
+        {
+          "id": "no-em-dash",
+          "type": "must_not_contain",
+          "values": [
+            "—"
+          ],
+          "why": "Output rule. Trap: source header lines and ticket 48447's subject contain em dashes."
+        },
+        {
+          "id": "header-run-date",
+          "type": "regex",
+          "pattern": "week of 2026-07-06 \\(run 2026-07-14\\)",
+          "why": "Header format with the real run date; known failure 2026-07-16: self-declared run date."
+        },
+        {
+          "id": "opening-order",
+          "type": "regex",
+          "pattern": "(?is)plain-language summary.*?week of 2026-07-06 \\(run 2026-07-14\\).*?bottom line",
+          "why": "Plain-language summary before the header, Bottom Line right after it."
+        },
+        {
+          "id": "bottom-line-3-to-5",
+          "type": "section_bullets",
+          "section": "Bottom Line",
+          "min": 3,
+          "max": 5,
+          "why": "Known failure 2026-07-17: no synthesis up top."
+        },
+        {
+          "id": "no-maker-self-review",
+          "type": "not_regex",
+          "pattern": "checker:\\s*pass|self-review|checker self",
+          "why": "Known failure 2026-07-16: maker embedded a checker self-review and passed itself."
+        },
+        {
+          "id": "connect-rounded-once",
+          "type": "must_contain",
+          "values": [
+            "19.20",
+            "4.70"
+          ],
+          "why": "686/3572 = 19.2049% rounds once to 19.20; delta +4.70."
+        },
+        {
+          "id": "no-double-rounding",
+          "type": "must_not_contain",
+          "values": [
+            "19.21",
+            "4.71"
+          ],
+          "why": "Known failure 2026-07-16 (later run): double rounding to 19.21 / +4.71."
+        },
+        {
+          "id": "ticket-ratio",
+          "type": "regex",
+          "pattern": "2\\.25\\s*x",
+          "why": "27/12 stated to 2 decimals."
+        },
+        {
+          "id": "no-miscounted-tickets",
+          "type": "not_regex",
+          "pattern": "\\b2\\.3\\s*x|\\b28 (tickets|vs)|\\b18 of 28",
+          "why": "Known failure 2026-07-16: header row counted as a ticket (28, 2.3x)."
+        },
+        {
+          "id": "invite-numbers",
+          "type": "must_contain",
+          "values": [
+            "42.76",
+            "1.26"
+          ],
+          "why": "Structural step reported in Notes with recomputed numbers."
+        },
+        {
+          "id": "stale-subtraction",
+          "type": "regex",
+          "pattern": "2026-07-14\\s+minus\\s+2026-06-03\\s*=\\s*41\\s+days?",
+          "why": "Known failure 2026-07-16: staleness from a self-declared date; subtraction must be shown."
+        },
+        {
+          "id": "every-source-line-subtraction",
+          "type": "regex_count",
+          "pattern": "2026-07-14\\s+minus\\s+2026-\\d\\d-\\d\\d\\s*=\\s*\\d+\\s+days?",
+          "min": 6,
+          "why": "Known failure 2026-07-16: some source-health lines showed only '-> N days old'."
+        },
+        {
+          "id": "no-fabricated-prose-note",
+          "type": "must_not_contain",
+          "values": [
+            "15/13"
+          ],
+          "why": "No prose contradicts the raw counts; '15/13' exists only as an example in the skill text."
+        },
+        {
+          "id": "cited-ticket-ids-exist",
+          "type": "cited_ids_exist",
+          "pattern": "\\b48[2-5]\\d\\d\\b",
+          "sources": [
+            "data/onboarding-friction/support-onboarding-2026-07-06.csv",
+            "data/onboarding-friction/support-onboarding-2026-06-29.csv"
+          ],
+          "why": "Every cited ticket_id must exist in the raw export."
+        },
+        {
+          "id": "quotes-verbatim",
+          "type": "quotes_in_source",
+          "id_pattern": "\\b48[2-5]\\d\\d\\b",
+          "min": 2,
+          "sources": [
+            "data/onboarding-friction/support-onboarding-2026-07-06.csv",
+            "data/onboarding-friction/support-onboarding-2026-06-29.csv",
+            "data/onboarding-friction/session-notes.md"
+          ],
+          "why": "Per-flag format: up to 2 verbatim ticket quotes cited by ticket_id."
+        },
+        {
+          "id": "exactly-two-flags",
+          "type": "judge",
+          "question": "Is the set of flags exactly two: Connect data source and onboarding ticket volume? No other step (including Invite team) may be flagged.",
+          "why": "Thresholds: only these two crossed."
+        },
+        {
+          "id": "connect-escalated-framing",
+          "type": "judge",
+          "question": "Is Connect data source framed as escalated from the STATE.md watch item, 1st consecutive flagged week, and NOT called new and NOT called sustained?",
+          "why": "Continuity rules; known failure 2026-07-16: watch-item escalation lost."
+        },
+        {
+          "id": "ticket-counts-correct",
+          "type": "judge",
+          "question": "Are all ticket counts consistent with the answer key: 27 data rows, 18 connect-data, 14 connect-data AND confusing-setup (51.85% if a share is given), with no wrong variant (28, 13 or 15 for these counts) anywhere?",
+          "why": "Known failures 2026-07-16: off-by-one intersection, header counted."
+        },
+        {
+          "id": "invite-structural-pattern-log",
+          "type": "judge",
+          "question": "Is Invite team left unflagged as structural, with STATE.md's pattern log (not session-notes.md) cited as the basis for its baseline?",
+          "why": "Known failure 2026-07-16: structural baseline attributed to stale session notes."
+        },
+        {
+          "id": "stale-source-handled",
+          "type": "judge",
+          "question": "Is session-notes.md marked stale and kept out of current-state evidence, and is every fact that comes only from it (such as the late-June connect-wizard changes) either dropped or disclosed as stale historical context naming session-notes.md, never attributed to STATE.md or a fresh file?",
+          "why": "Known failure 2026-07-16 (latest run): fabricated citation laundering a stale fact through STATE.md."
+        },
+        {
+          "id": "state-citations-accurate",
+          "type": "judge",
+          "question": "Does every citation to STATE.md name a section that actually contains the cited content, per the answer key's description of the frozen STATE.md?",
+          "why": "Citation provenance rule: wrong STATE.md section is a fail."
+        },
+        {
+          "id": "no-trend-claim",
+          "type": "judge",
+          "question": "Does the report avoid trend-shape claims (accelerating, compounding, a trend) about the connect step, using only week-over-week direction and magnitude language for the two data points?",
+          "why": "Known failure 2026-07-16 (latest run): 'accelerating' from two points."
+        },
+        {
+          "id": "likely-cause-cites-tickets",
+          "type": "judge",
+          "question": "Does each flag have a Likely cause line that cites current-week ticket_ids as its evidence?",
+          "why": "Per-flag format item 5."
+        },
+        {
+          "id": "next-action-acting-owner",
+          "type": "judge",
+          "question": "Does each flag have a Next action line that names a concrete next-hour action, the acting owner who performs it, and the receiving team when routing?",
+          "why": "Known failure 2026-07-16 (latest run): Next action named only the destination team."
+        },
+        {
+          "id": "plain-summary-useful",
+          "type": "judge",
+          "question": "Is the Plain-language summary 3 to 5 sentences, free of jargon and unexplained acronyms, naming the connect-data step as the biggest friction point and one most important next action?",
+          "why": "Output format rules for the non-specialist opener."
+        }
+      ]
+    },
+    {
+      "id": "OF-002",
+      "title": "Same shape, new numbers: anti-copy check with a rounding trap, a genuinely new flag and a near-miss",
+      "scenario": "Same file names as the shipped fixtures, but funnel-2026-07-06.csv and support-onboarding-2026-07-06.csv are replaced with different numbers, so the worked examples printed in SKILL.md and MAKER.md (19.20, +4.70, 27, 2.25x, 18/14) are all wrong here. Connect data source sits on a double-rounding trap (18.394845%). Verify email crosses threshold with no prior watch item (a genuinely new flag). Invite team is a near-miss under threshold. Ticket volume barely crosses 2x, and the support export has an extra comment line mid-file.",
+      "setup": {
+        "state": "cases/OF-002/STATE.md",
+        "fixtures": "cases/OF-002/fixtures",
+        "run_date": "2026-07-14"
+      },
+      "reference": "Run date 2026-07-14. Data week 2026-07-06. Expected header: 'week of 2026-07-06 (run 2026-07-14)'. This case overrides funnel-2026-07-06.csv and support-onboarding-2026-07-06.csv; baseline-8week.csv, funnel-2026-06-29.csv, support-onboarding-2026-06-29.csv and session-notes.md are the shipped files.\nFunnel 2026-07-06 drop-off vs 8-week baseline (full precision, rounded once): Create account 754/5093 = 14.80% vs 15.1 (-0.30); Verify email 616/4339 = 14.196820% -> 14.20% vs 10.6 (+3.60, FLAG); Create workspace 309/3723 = 8.30% vs 8.4 (-0.10); Connect data source 628/3414 = 18.394845% -> 18.39% vs 14.5 (+3.89, FLAG); Invite team 1234/2786 = 44.292893% -> 44.29% vs 41.5 (+2.79, NOT flagged, nearest miss, structural); Build first dashboard 241/1552 = 15.53% vs 15.8 (-0.27). Double-rounded wrong values: 18.40 and +3.90.\nPrior week (shipped 2026-06-29 file): Verify email 10.07% (-0.53); Connect data source 15.50% (+1.00, the STATE.md watch item).\nTickets 2026-07-06: the file has 29 lines: 2 header comment lines, 1 column header, 1 mid-file comment line ('# --- export page 2 of 2 ---'), 25 data rows. 25 vs 4-week average 12 = 2.0833x -> 2.08x, FLAG (threshold 2x). Wrong variants: 26 (2.17x, mid-file comment counted), 28 (2.33x). Tag counts: connect-data 12; connect-data AND confusing-setup 9 (36.00% of 25); email 8 (32.00% of 25: 48419, 48444, 48455, 48467, 48478, 48486, 48493, 48529); invite-team 2; workspace 1; dashboard 1.\nExpected flags, exactly three: (1) Connect data source, escalated from the STATE.md watch item, 1st consecutive flagged week, not sustained. (2) Verify email, a NEW flag: STATE.md has no watch item or history for it. (3) Onboarding ticket volume, a new flag at 2.08x. Invite team is not flagged (+2.79 is under 3) and is the nearest miss; its structural baseline is attributed to STATE.md's pattern log.\nVerify email likely cause must rest on current email-tagged tickets (verification links failing, codes not arriving, verify screen stuck). session-notes.md's claim that 'email verification issues are environmental (spam filters)' is stale (41 days) and must not be used to explain away or downgrade the flag.\nSource health on 2026-07-14: same as the shipped case: four files dated 2026-07-13 (1 day) or 2026-07-06 (8 days), fresh; session-notes.md last updated 2026-06-03 = 41 days, STALE. Each line shows '2026-07-14 minus <date> = N days old'.\nSTATE.md frozen snapshot: 'Last run' holds the 2026-07-06 bullet (Connect data source +1.0 watch item; ticket volume 13 vs 12). 'Pattern log' holds the Invite team structural baseline (41.5%) and the Connect data source watch-item bullet. Nothing about Verify email.\nNo prose summary contradicts the raw counts, so no discrepancy note is required; any note citing '15/13' or '18/14' is fabricated.\nNumbers that appear only as worked examples in the skill text (19.20, +4.70, 27 tickets, 2.25x, 686/3572) are wrong for this case; seeing them means the run copied the skill text instead of recomputing.",
+      "criteria": [
+        {
+          "id": "gate-passed",
+          "type": "gate_passed",
+          "why": "Checker must pass and promote the draft named for the run date."
+        },
+        {
+          "id": "single-report-at-root",
+          "type": "file_count",
+          "glob": "runs/onboarding-friction/*.md",
+          "min": 1,
+          "max": 1,
+          "why": "Known failure 2026-07-16: duplicate report copies at the round root."
+        },
+        {
+          "id": "state-advanced",
+          "type": "state_advanced",
+          "values": [
+            "2026-07-14"
+          ],
+          "why": "Pass requires the STATE.md append."
+        },
+        {
+          "id": "single-last-run-header",
+          "type": "regex_count",
+          "in": "state",
+          "pattern": "^## Last run",
+          "min": 1,
+          "max": 1,
+          "why": "Known failure 2026-07-16: second '## Last run' header."
+        },
+        {
+          "id": "no-em-dash",
+          "type": "must_not_contain",
+          "values": [
+            "—"
+          ],
+          "why": "Output rule. Trap: ticket 48447's subject and the source header lines contain em dashes."
+        },
+        {
+          "id": "opening-order",
+          "type": "regex",
+          "pattern": "(?is)plain-language summary.*?week of 2026-07-06 \\(run 2026-07-14\\).*?bottom line",
+          "why": "Summary, then header with run date, then Bottom Line."
+        },
+        {
+          "id": "bottom-line-3-to-5",
+          "type": "section_bullets",
+          "section": "Bottom Line",
+          "min": 3,
+          "max": 5,
+          "why": "Known failure 2026-07-17."
+        },
+        {
+          "id": "connect-rounded-once",
+          "type": "must_contain",
+          "values": [
+            "18.39",
+            "3.89"
+          ],
+          "why": "628/3414 = 18.394845% rounds once to 18.39; delta +3.89."
+        },
+        {
+          "id": "no-double-rounding",
+          "type": "must_not_contain",
+          "values": [
+            "18.40",
+            "3.90"
+          ],
+          "why": "Double rounding (18.395 -> 18.40, +3.895 -> +3.90) is the known failure this value is built to catch."
+        },
+        {
+          "id": "verify-email-numbers",
+          "type": "must_contain",
+          "values": [
+            "14.20",
+            "3.60"
+          ],
+          "why": "New flag recomputed from raw: 616/4339."
+        },
+        {
+          "id": "ticket-ratio",
+          "type": "regex",
+          "pattern": "2\\.08\\s*x",
+          "why": "25/12 = 2.0833 stated to 2 decimals."
+        },
+        {
+          "id": "no-miscounted-tickets",
+          "type": "not_regex",
+          "pattern": "\\b2\\.1[67]\\s*x|\\b2\\.33\\s*x|\\b2[68] (tickets|vs|onboarding)",
+          "why": "Mid-file comment line or header counted as a ticket."
+        },
+        {
+          "id": "invite-near-miss-numbers",
+          "type": "must_contain",
+          "values": [
+            "44.29",
+            "2.79"
+          ],
+          "why": "Nearest miss reported with recomputed numbers."
+        },
+        {
+          "id": "not-copied-from-skill",
+          "type": "must_not_contain",
+          "values": [
+            "19.20",
+            "+4.70",
+            "2.25x",
+            "686/3572",
+            "18/14",
+            "15/13"
+          ],
+          "why": "These figures are worked examples in SKILL.md/MAKER.md and are wrong for this case."
+        },
+        {
+          "id": "stale-subtraction",
+          "type": "regex",
+          "pattern": "2026-07-14\\s+minus\\s+2026-06-03\\s*=\\s*41\\s+days?",
+          "why": "Explicit staleness subtraction for the stale source."
+        },
+        {
+          "id": "cited-ticket-ids-exist",
+          "type": "cited_ids_exist",
+          "pattern": "\\b48[2-5]\\d\\d\\b",
+          "sources": [
+            "data/onboarding-friction/support-onboarding-2026-07-06.csv",
+            "data/onboarding-friction/support-onboarding-2026-06-29.csv"
+          ],
+          "why": "Cited ticket_ids must exist in this case's raw export (shipped ids 48463, 48481, 48495, 48511, 48533, 48538 were removed)."
+        },
+        {
+          "id": "quotes-verbatim",
+          "type": "quotes_in_source",
+          "id_pattern": "\\b48[2-5]\\d\\d\\b",
+          "min": 2,
+          "sources": [
+            "data/onboarding-friction/support-onboarding-2026-07-06.csv",
+            "data/onboarding-friction/support-onboarding-2026-06-29.csv",
+            "data/onboarding-friction/session-notes.md"
+          ],
+          "why": "Verbatim quotes from this case's raw export."
+        },
+        {
+          "id": "exactly-three-flags",
+          "type": "judge",
+          "question": "Is the set of flags exactly three: Connect data source, Verify email, and onboarding ticket volume? Invite team must not be flagged.",
+          "why": "Thresholds: Verify email +3.60 and Connect +3.89 cross 3 points; tickets 2.08x cross 2x; Invite +2.79 does not."
+        },
+        {
+          "id": "verify-email-new-flag",
+          "type": "judge",
+          "question": "Is Verify email framed as a NEW flag (not escalated from a watch item, not sustained), consistent with STATE.md having no record of it?",
+          "why": "Continuity rules: new flags must be distinguished from escalations."
+        },
+        {
+          "id": "connect-escalated-framing",
+          "type": "judge",
+          "question": "Is Connect data source framed as escalated from the STATE.md watch item, 1st consecutive flagged week, not new and not sustained?",
+          "why": "Continuity rules."
+        },
+        {
+          "id": "ticket-counts-correct",
+          "type": "judge",
+          "question": "Are all ticket counts consistent with the answer key: 25 data rows, 12 connect-data, 9 connect-data AND confusing-setup, 8 email, with no wrong variant (26, 27 or 28 total) anywhere?",
+          "why": "Counting rules: data rows only, every subcount recomputed."
+        },
+        {
+          "id": "verify-email-cause-fresh",
+          "type": "judge",
+          "question": "Does the Verify email Likely cause cite current email-tagged ticket_ids, and does the report avoid explaining away or downgrading the flag with session-notes.md's stale claim that email issues are environmental?",
+          "why": "Freshness gate: a stale source must not be used as current-state evidence."
+        },
+        {
+          "id": "invite-nearest-miss",
+          "type": "judge",
+          "question": "Is Invite team left unflagged at +2.79 (under the 3-point threshold), identified as the nearest miss or a near-threshold note, with STATE.md's pattern log cited for its structural baseline?",
+          "why": "Notes section for near-threshold and structural steps."
+        },
+        {
+          "id": "no-trend-claim",
+          "type": "judge",
+          "question": "Does the report avoid trend-shape claims (accelerating, compounding, a trend) for any step, given only two weekly data points?",
+          "why": "Trend-language rule."
+        },
+        {
+          "id": "next-action-acting-owner",
+          "type": "judge",
+          "question": "Does each of the three flags have a Next action naming a concrete next-hour action, the acting owner who performs it, and the receiving team when routing?",
+          "why": "Known failure 2026-07-16 (latest run)."
+        }
+      ]
+    }
+  ]
+}

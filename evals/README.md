@@ -17,6 +17,7 @@ A case is one frozen scenario:
 
 - **Inputs:** the loop's fixtures in `data/<loop>/`, optionally overridden by `cases/<ID>/fixtures/`.
 - **Frozen state:** `cases/<ID>/STATE.md` is copied over the skill's STATE.md before every run. Loops append to STATE.md as they run, so without this freeze no two runs see the same input.
+- **Run date** (`setup.run_date`, optional): for loops that use today's date (staleness, report headers). The runner tells the run "the run date is X", so the expected answer doesn't drift as the calendar moves.
 - **Answer key** (`reference`): the correct result, recomputed by hand from the fixtures.
 - **Criteria:** what a correct output must and must not do. Most criteria come straight from the skill's Known failure modes.
 
@@ -26,6 +27,10 @@ Criterion types:
 |---|---|---|
 | `must_contain` / `must_not_contain` | literal strings in the output (case-insensitive) | no |
 | `regex` / `not_regex` | a pattern in the output | no |
+| `regex_count` | a pattern occurs min..max times (e.g. one `## Last run` header in STATE.md) | no |
+| `cited_ids_exist` | every ID the output cites (e.g. ticket_ids) exists in the named source files | no |
+| `quotes_in_source` | quotes on lines that cite an ID appear word for word in the source files | no |
+| `file_count` | min..max files match a glob after the run (e.g. exactly one report at the round root) | no |
 | `heading_order` | the sections exist and appear in this order | no |
 | `section_bullets` | a section has min..max top-level bullets | no |
 | `gate_passed` | the checker approved the draft (an approved file exists) | no |
@@ -92,8 +97,11 @@ evals/
 |---|---|---|
 | metric-anomaly | MA-001 | day 2 of an open flag, clean vs contaminated baseline, under-threshold decoy, decoy causes |
 | ai-quality-watchdog | AQW-001 | confirmed regression, new failures with a shared cause, intermittents not called new, exhaustive clears, em-dash trap |
+| onboarding-friction | OF-001, OF-002 | OF-001: watch item escalates, ticket spike, structural step stays quiet, stale-source citation laundering, fabricated prose note. OF-002: same file names with new numbers (catches copying the skill's worked examples), double-rounding trap, a genuinely new flag, near-miss, mid-file comment line |
 
-The other 10 loops have no eval cases yet.
+The other 9 loops have no eval cases yet.
+
+**Watch for answers leaking into the skill text.** If a skill's instructions use the fixture's real numbers as worked examples (onboarding-friction does), a case on that fixture can't tell computing from copying. Add a case that overlays the same file names with different numbers.
 
 ## Adding a case
 
